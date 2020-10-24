@@ -28,22 +28,23 @@ class CustomTopo(Topo):
         for i in range(1, fanout + 1):
             name = "a" + str(i)
             aggregation_switches.append(self.addSwitch(name))
-            self.addLink(core, aggregation_switches[i-1], **linkopts1)
+            self.addLink(core, aggregation_switches[-1], **linkopts1)
 
         #aggregation to edge
         for a in range(0, fanout):
             for i in range(1, fanout + 1):
-                name = "e" + str(i)
+                name = "e" + str(a * 2 + i)
                 edge_switches.append(self.addSwitch(name))
-                self.addLink(aggregation_switches[a], edge_switches[i-1], **linkopts2)
+                self.addLink(aggregation_switches[a], edge_switches[-1], **linkopts2)
 
         #edge to host
-        for e in range(0, fanout):
+        for e in range(0, fanout**2):
             for i in range(1, fanout + 1):
-                name = "h" + str(i)
+                name = "h" + str(e*2 + i)
                 hosts.append(self.addHost(name))
-                self.addLink(edge_switches[e], hosts[i-1], **linkopts3)             
+                self.addLink(edge_switches[e], hosts[-1], **linkopts3)             
 
+setLogLevel("info")
 linkopts1 = dict(bw=10, delay="5ms", loss=10, max_queue_size=1000, use_htb=True)
 linkopts2 = dict(bw=10, delay="5ms", loss=10, max_queue_size=1000, use_htb=True)
 linkopts3 = dict(bw=10, delay="5ms", loss=10, max_queue_size=1000, use_htb=True)
