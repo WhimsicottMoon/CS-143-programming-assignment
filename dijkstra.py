@@ -6,9 +6,6 @@ from pox.lib.addresses import EthAddr
 from collections import namedtuple
 import os
 import csv
-''' Add your imports here ... '''
-
-
 
 log = core.getLogger()
 delayFile = "%s/pox/pox/misc/delay.csv" % os.environ[ 'HOME' ]
@@ -16,8 +13,6 @@ with open(delayFile, mode='r') as infile:
     reader = csv.reader(infile)
     delay_dict = {rows[0]:rows[1] for rows in reader}
     delay_dict.pop("link")
-    
-''' Add global variables and data processing here ... '''
 
 def dijkstra(s,d):
     source = s
