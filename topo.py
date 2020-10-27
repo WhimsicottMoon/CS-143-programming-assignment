@@ -45,11 +45,6 @@ class Q9Topo(Topo):
         
         
 setLogLevel("info")                   
-topos = Q9Topo()
-net = Mininet(topo=topos, host=CPULimitedHost, link=TCLink)
-net.start()
-print ("Dumping host connections")
-dumpNodeConnections(net.hosts)
-print ("Testing network connectivity")
-net.pingAll()
-net.stop()
+topos = { 'custom': ( lambda: Q9Topo() ) }
+
+
