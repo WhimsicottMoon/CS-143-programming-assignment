@@ -45,14 +45,20 @@ class CustomTopo(Topo):
                 self.addLink(edge_switches[e], hosts[-1], **linkopts3)             
 
 setLogLevel("info")
+
 linkopts1 = dict(bw=10, delay="5ms", loss=10, max_queue_size=1000, use_htb=True)
 linkopts2 = dict(bw=10, delay="5ms", loss=10, max_queue_size=1000, use_htb=True)
 linkopts3 = dict(bw=10, delay="5ms", loss=10, max_queue_size=1000, use_htb=True)
-topos = CustomTopo(linkopts1, linkopts2, linkopts3)
-net = Mininet(topo=topos, host=CPULimitedHost, link=TCLink)
-net.start()
-print "Dumping host connections"
-dumpNodeConnections(net.hosts)
-print "Testing network connectivity"
-net.pingAll()
-net.stop()
+topos = { "custom": ( lambda: CustomTopo(linkopts1,linkopts2,linkopts3) ) }
+
+##linkopts1 = dict(bw=10, delay="5ms", loss=10, max_queue_size=1000, use_htb=True)
+##linkopts2 = dict(bw=10, delay="5ms", loss=10, max_queue_size=1000, use_htb=True)
+##linkopts3 = dict(bw=10, delay="5ms", loss=10, max_queue_size=1000, use_htb=True)
+##topos = CustomTopo(linkopts1, linkopts2, linkopts3)
+##net = Mininet(topo=topos, host=CPULimitedHost, link=TCLink)
+##net.start()
+##print "Dumping host connections"
+##dumpNodeConnections(net.hosts)
+##print "Testing network connectivity"
+##net.pingAll()
+##net.stop()
