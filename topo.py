@@ -1,11 +1,17 @@
 #!/usr/bin/python
 from mininet.topo import Topo
+from mininet.net import Mininet
 import csv
+from mininet.log import setLogLevel
+from mininet.link import TCLink
+from mininet.util import irange, dumpNodeConnections
 
 with open('delay.csv', mode='r') as infile:
     reader = csv.reader(infile)
     delay_dict = {rows[0]:rows[1] for rows in reader}
     delay_dict.pop("link")
+
+print(delay_dict)
     
 class Q9Topo(Topo):
     def __init__(self, **opts):
@@ -34,5 +40,12 @@ class Q9Topo(Topo):
         
         
         
-                    
-topos = { 'custom': ( lambda: Q9Topo() ) }
+setLogLevel("info")                   
+topos = Q9Topo()
+net = Mininet(topo=topos, host=CPULimitedHost, link=TCLink)
+net.start()
+print "Dumping host connections"
+dumpNodeConnections(net.hosts)
+print "Testing network connectivity"
+net.pingAll()
+net.stop()
