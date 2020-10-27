@@ -3,6 +3,8 @@ from mininet.topo import Topo
 from mininet.net import Mininet
 import csv
 from mininet.log import setLogLevel
+from mininet.link import TCLink
+from mininet.util import irange, dumpNodeConnections
 
 with open('delay.csv', mode='r') as infile:
     reader = csv.reader(infile)
@@ -40,7 +42,7 @@ class Q9Topo(Topo):
         
 setLogLevel("info")                   
 topos = Q9Topo()
-net = Mininet(topos)
+net = Mininet(topo=topos, host=CPULimitedHost, link=TCLink)
 net.start()
 print "Dumping host connections"
 dumpNodeConnections(net.hosts)
