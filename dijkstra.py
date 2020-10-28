@@ -4,6 +4,7 @@ from pox.lib.revent import *
 from pox.lib.util import dpidToStr
 from pox.lib.addresses import EthAddr
 from collections import namedtuple
+from pox.lib.addresses import IPAddr
 import os
 import csv
 
@@ -96,7 +97,7 @@ class Dijkstra (EventMixin):
         log.debug("Enabling Dijkstra Module")
 
     def _handle_ConnectionUp (self, event):    
-        current_switch = "%s" % event.dpid
+        current_switch = "s%s" % event.dpid
         for i in range(0, 4):
             match = of.ofp_match()
             match.nw_dst = IPAddr(host_IPs[i])
