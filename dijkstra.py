@@ -20,6 +20,7 @@ with open(delayFile, mode='r') as infile:
 
 hosts = ["h13", "h15", "h17", "h19"]
 host_IPs = ["10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.4"]
+host_MACs = ["00:00:00:00:00:01","00:00:00:00:00:02","00:00:00:00:00:03","00:00:00:00:00:04"]
 
 ports = {
         
@@ -100,7 +101,21 @@ class Dijkstra (EventMixin):
         current_switch = "s%s" % event.dpid
         for i in range(0, 4):
             match = of.ofp_match()
-            match.nw_dst = IPAddr(host_IPs[i])
+            match.dl_dst = EthAddr(host_MACs[i])
+            next_step = next_in_path(current_switch, hosts[i])
+            out_port = ports[current_switch][next_step]
+            # create a new flow table modification message
+            msg = of.ofp_flow_mod()
+            # assign this flow table message's match condition to the one above
+            msg.match = match
+            # make the action for this msg
+            msg.actions.append(of.ofp_action_output(port = out_port))
+            # send the flow table entry to the switch
+            event.connection.send(msg)
+        for i in range(0, 4):
+            match = of.ofp_match()
+            msg.match.dl_type = 0x800
+            match.nw_dst = IPAddr(host_IPs[i])            
             next_step = next_in_path(current_switch, hosts[i])
             out_port = ports[current_switch][next_step]
             # create a new flow table modification message
