@@ -29,6 +29,7 @@ class Q9Topo(Topo):
             switches.append(self.addSwitch(switch))
         for host in ["h13","h15","h17","h19"]:
             hosts.append(self.addHost(host))
+            
         
         self.addLink(switches[0], switches[1], delay=delay_dict["g"]+"ms")
         self.addLink(switches[0], switches[-1], delay=delay_dict["k"]+"ms")
@@ -40,7 +41,7 @@ class Q9Topo(Topo):
         self.addLink(switches[3], switches[4], delay=delay_dict["j"]+"ms")
         
         for i in range(4):
-            self.addLink(switches[i+1], hosts[i])
+            self.addLink(switches[i+1], hosts[i], delay="0ms")
         
         
         

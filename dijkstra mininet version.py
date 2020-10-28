@@ -1,3 +1,4 @@
+
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.revent import *
@@ -16,19 +17,19 @@ with open(delayFile, mode='r') as infile:
     delay_dict.pop("link")
     for key in delay_dict:
         delay_dict[key] = int(delay_dict[key])
-    
+
 
 hosts = ["h13", "h15", "h17", "h19"]
 host_IPs = ["10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.4"]
 
 ports = {
-        
+
         's11': {'s12': 1, 's18': 2},
         's12': {'s11':1, 's14': 2, 's16': 3, 's18': 4, 'h13': 5},
         's14': {'s12': 1, 's16': 2, 's18': 3, 'h15': 4},
         's16': {'s12': 1, 's14': 2, 's18': 3, 'h17': 4},
         's18': {'s11': 1, 's12': 2, 's14': 3, 's16': 4, 'h19': 5}
-            
+
             }
 
 def dijkstra(s,d):
@@ -46,14 +47,14 @@ def dijkstra(s,d):
         's14': {'s12':delay_dict["h"], 's16':delay_dict["i"], 's18':delay_dict["n"], 'h15':0},
         's16': {'s12':delay_dict["m"], 's14':delay_dict["i"], 's18':delay_dict["j"], 'h17':0},
         's18': {'s11':delay_dict["k"], 's12':delay_dict["l"], 's14':delay_dict["n"], 's16':delay_dict["j"], 'h19':0}
-            
+
             }
 
     for node in graph:
         delay[node] = float("inf")
         adj_node[node] = None
         queue.append(node)
-    
+
     delay[source] = 0
 
     while queue:
@@ -62,18 +63,18 @@ def dijkstra(s,d):
         min_val = delay[key_min]
         for n in range(1, len(queue)):
             if delay[queue[n]] < min_val:
-                key_min = queue[n]  
+                key_min = queue[n]
                 min_val = delay[key_min]
         cur = key_min
         queue.remove(cur)
-        
+
         for i in graph[cur]:
             alternate = graph[cur][i] + delay[cur]
             if delay[i] > alternate:
                 delay[i] = alternate
                 adj_node[i] = cur
-                
-    final_list = []        
+
+    final_list = []
     final_list.append(d)
     while True:
         d = adj_node[d]
@@ -81,13 +82,19 @@ def dijkstra(s,d):
             break
         final_list.append(d)
     final_list.reverse()
-    
+
     return final_list
 
 def next_in_path(s,d):
+    print "SOURCE"
+    print s
+    print "Dest"
+    print d
     if (s == d):
-        return d
+        return ""
     else:
+        print "HALLOOOOOOOOOOO"
+        print(dijkstra(s,d))
         return dijkstra(s,d)[1]
 
 class Dijkstra (EventMixin):
@@ -96,7 +103,7 @@ class Dijkstra (EventMixin):
         self.listenTo(core.openflow)
         log.debug("Enabling Dijkstra Module")
 
-    def _handle_ConnectionUp (self, event):    
+    def _handle_ConnectionUp (self, event):
         current_switch = "s%s" % event.dpid
         for i in range(0, 4):
             match = of.ofp_match()
@@ -105,13 +112,13 @@ class Dijkstra (EventMixin):
             out_port = ports[current_switch][next_step]
             # create a new flow table modification message
             msg = of.ofp_flow_mod()
-            # assign this flow table message's match condition to the one above
+            # assign this flow table messages match condition to the one above
             msg.match = match
             # make the action for this msg
             msg.actions.append(of.ofp_action_output(port = out_port))
             # send the flow table entry to the switch
             event.connection.send(msg)
-        log.debug("Dijkstra installed on %s", dpidToStr(event.dpid))        
+        log.debug("Dijkstra installed on %s", dpidToStr(event.dpid))
 
 def launch ():
     '''
