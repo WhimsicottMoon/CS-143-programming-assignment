@@ -13,6 +13,22 @@ with open(delayFile, mode='r') as infile:
     reader = csv.reader(infile)
     delay_dict = {rows[0]:rows[1] for rows in reader}
     delay_dict.pop("link")
+    for key in delay_dict:
+        delay_dict[key] = int(delay_dict[key])
+    
+
+hosts = ["h13", "h15", "h17", "h19"]
+host_IPs = ["10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.4"]
+
+ports = {
+            
+        's11': {'s12': 1, 's18': 2},
+        's12': {'s11':1, 's14': 2, 's16': 3, 's18': 4, 'h13': 5},
+        's14': {'s12': 1, 's16': 2, 's18': 3, 'h15': 4},
+        's16': {'s12': 1, 's14': 2, 's18': 3, 'h17': 4},
+        's18': {'s11': 1, 's12': 2, 's14': 3, 's16': 4, 'h19': 5}
+            
+            }
 
 def dijkstra(s,d):
     source = s
@@ -20,12 +36,15 @@ def dijkstra(s,d):
     adj_node = {}
     queue = []
     graph = {
-            
-        'S11': {'S12':delay_dict["g"], 'S18':delay_dict["k"]},
-        'S12': {'S11':delay_dict["g"], 'S14':delay_dict["h"], 'S16':delay_dict["m"], 'S18':delay_dict["l"]},
-        'S14': {'S12':delay_dict["h"], 'S16':delay_dict["i"], 'S18':delay_dict["n"]},
-        'S16': {'S12':delay_dict["m"], 'S14':delay_dict["i"], 'S18':delay_dict["j"]},
-        'S18': {'S11':delay_dict["k"], 'S12':delay_dict["l"], 'S14':delay_dict["n"], 'S16':delay_dict["j"]}
+        'h13': {'s12':0},
+        'h15': {'s14':0},
+        'h17': {'s16':0},
+        'h19': {'s18':0},
+        's11': {'s12':delay_dict["g"], 's18':delay_dict["k"]},
+        's12': {'s11':delay_dict["g"], 's14':delay_dict["h"], 's16':delay_dict["m"], 's18':delay_dict["l"], 'h13':0},
+        's14': {'s12':delay_dict["h"], 's16':delay_dict["i"], 's18':delay_dict["n"], 'h15':0},
+        's16': {'s12':delay_dict["m"], 's14':delay_dict["i"], 's18':delay_dict["j"], 'h17':0},
+        's18': {'s11':delay_dict["k"], 's12':delay_dict["l"], 's14':delay_dict["n"], 's16':delay_dict["j"], 'h19':0}
             
             }
 
@@ -64,8 +83,11 @@ def dijkstra(s,d):
     
     return final_list
 
-def dijkstra_wrapper(s,d):
-    return dijkstra(s,d)[1]
+def next_in_path(s,d):
+    if (s == d):
+        return ""
+    else:
+        return dijkstra(s,d)[1]
 
 class Dijkstra (EventMixin):
 
@@ -74,8 +96,20 @@ class Dijkstra (EventMixin):
         log.debug("Enabling Dijkstra Module")
 
     def _handle_ConnectionUp (self, event):    
-        ''' Add your logic here ... '''
-        
+        current_switch = "%s" % event.dpid
+        for i in range(0, 4):
+            match = of.ofp_match()
+            match.nw_dst = IPAddr(host_IPs[i])
+            next_step = next_in_path(current_switch, hosts[i])
+            out_port = ports[current_switch][next_step]
+            # create a new flow table modification message
+            msg = of.ofp_flow_mod()
+            # assign this flow table messages match condition to the one above
+            msg.match = match
+            # make the action for this msg
+            msg.actions.append(of.ofp_action_output(port = out_port))
+            # send the flow table entry to the switch
+            event.connection.send(msg)
         log.debug("Dijkstra installed on %s", dpidToStr(event.dpid))        
 
 def launch ():
