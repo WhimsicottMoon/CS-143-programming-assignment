@@ -100,6 +100,7 @@ class Dijkstra (EventMixin):
     def _handle_ConnectionUp (self, event):    
         current_switch = "s%s" % event.dpid
         for i in range(0, 4):
+            #naking rules based on MAC addresses
             match = of.ofp_match()
             match.dl_dst = EthAddr(host_MACs[i])
             next_step = next_in_path(current_switch, hosts[i])
@@ -112,9 +113,9 @@ class Dijkstra (EventMixin):
             msg.actions.append(of.ofp_action_output(port = out_port))
             # send the flow table entry to the switch
             event.connection.send(msg)
-        for i in range(0, 4):
+            #making rules for ARP packets based on IP addresses
             match = of.ofp_match()
-            msg.match.dl_type = 0x800
+            match.dl_type = 0x806
             match.nw_dst = IPAddr(host_IPs[i])            
             next_step = next_in_path(current_switch, hosts[i])
             out_port = ports[current_switch][next_step]
